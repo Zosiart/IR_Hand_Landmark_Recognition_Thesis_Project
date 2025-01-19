@@ -1,4 +1,10 @@
+import json
+import os
+from dotenv import load_dotenv
+
 import numpy as np
+
+from src.evaluation.recognizer import Recognizer
 
 
 class PCKCalculator:
@@ -14,7 +20,13 @@ class PCKCalculator:
         :param threshold (float): The distance threshold factor. Used to calculate acceptable distance from ground
          truth point.
         """
+        # Load environment variables from the .env file
+        load_dotenv()
+
         self.threshold = threshold
+        self.lower_bound = None
+        self.upper_bound = None
+        self.recognizer = Recognizer(os.getenv("MODEL_PATH"))
 
     def set_threshold(self, threshold):
         """
@@ -87,6 +99,7 @@ class PCKCalculator:
         acceptable_distance_left = self.calculate_acceptable_distance(ground_truth_hands[0])
         acceptable_distance_right = self.calculate_acceptable_distance(ground_truth_hands[1])
 
+
         left_pck_first = self.calculate_pck_for_hand(ground_truth_hands[0], first_predicted_hand, acceptable_distance_left)
         right_pck_first = self.calculate_pck_for_hand(ground_truth_hands[1], first_predicted_hand, acceptable_distance_right)
 
@@ -110,3 +123,62 @@ class PCKCalculator:
 
         return pck
 
+    @staticmethod
+    def calculate_final_pck(scores):
+        """
+        Calculate the final pck as the average of left and right scores.
+
+        :param scores: dict
+            Dictionary containing PCK scores for "Left" and "Right" hands.
+        :return: float
+            The average PCK score.
+        """
+        all_scores = scores["Left"] + scores["Right"]
+        return sum(all_scores) / len(all_scores) if all_scores else 0.0
+
+    def calculate_pck_bound(self, image_directory, ground_truth_directory, bound_type):
+        """
+        Calculate the PCK bound for a dataset, either 'upper' or 'lower'.
+
+        :param image_directory: str
+            Directory containing the images.
+        :param ground_truth_directory: str
+            Directory containing ground truth annotations in JSON files.
+        :param bound_type: str
+            Specifies the type of bound: "upper" or "lower".
+        :return: float
+            The calculated PCK bound.
+        :raises ValueError:
+            If the bound_type is not "upper" or "lower".
+        """
+        if bound_type not in {"upper", "lower"}:
+            raise ValueError("bound_type must be 'upper' or 'lower'.")
+
+        total_bound = {"Left": [], "Right": []}
+        for file_name in os.listdir(ground_truth_directory):
+            if file_name.endswith('.json'):
+                json_file_path = os.path.join(ground_truth_directory, file_name)
+
+                with open(json_file_path, 'r') as f:
+                    ground_truth_data = json.load(f)
+
+                for entry in ground_truth_data:
+                    image_name = entry["image"]
+                    ground_truth_landmarks = entry["landmarks"]
+                    image_path = os.path.join(image_directory, image_name)
+                    prediction_results = self.recognizer.recognize_landmarks_gestures(image_path)
+
+                    pck = self.calculate_pck(ground_truth_landmarks, prediction_results.hand_landmarks)
+
+                    for hand in ["Left", "Right"]:
+                        total_bound[hand].append(pck[hand])
+
+        final_pck = self.calculate_final_pck(total_bound)
+
+        # Store the bound result based on bound_type
+        if bound_type == "upper":
+            self.upper_bound = final_pck
+        elif bound_type == "lower":
+            self.lower_bound = final_pck
+
+        return final_pck

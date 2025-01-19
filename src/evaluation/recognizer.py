@@ -28,4 +28,4 @@ class Recognizer:
         image = mp.Image.create_from_file(image_path)
         results = self.recognizer.recognize(image)
 
-        return results.hand_landmarks, results.gestures
+        return results
