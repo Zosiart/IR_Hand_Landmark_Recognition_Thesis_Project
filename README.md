@@ -8,19 +8,19 @@ Welcome to the **Infrared Hand Image Research Project** repository. This project
 
 1. [Project Overview](#project-overview)
 2. [Repository Structure](#repository-structure)
-3. [Features](#features)
-4. [Getting Started](#getting-started)
+3. [Getting Started](#getting-started)
    - [Installation](#installation)
    - [Usage](#usage)
-5. [Evaluation Metrics](#evaluation-metrics)
-6. [Pipeline Overview](#pipeline-overview)
+4. [Evaluation Metrics](#evaluation-metrics)
+5. [Pipeline Overview](#pipeline-overview)
+6. [Affiliations](#affiliations)
 
 
 ---
 
 ## Project Overview
 
-This research investigates how to improve landmark detection in infrared hand images using techniques like:
+This research investigates how to improve landmark detection in infrared hand images using:
 
 - **Colorization**: Converting grayscale infrared images to resemble real hand images.
 - **Evaluation**: Measuring performance through metrics like Percentage of Correct Keypoints (PCK).
@@ -55,7 +55,7 @@ This research investigates how to improve landmark detection in infrared hand im
   - `PCKCalculator.py`: Calculates the PCK metric at various thresholds.
   - `Recognizer.py`: Aids in landmark detection evaluations.
 
-- **`colorization/`**: Adapted from [Richard Zhang's colorization model](https://richzhang.github.io/).
+- **`colorization/`**: Adapted from [Richard Zhang's colorization model](https://github.com/richzhang/colorization).
 
 - **`annotations/`**: Tools for annotating infrared hand images.
   - `adding_landmarks.py`: A script for adding landmark annotations manually.
@@ -70,23 +70,6 @@ This research investigates how to improve landmark detection in infrared hand im
 
 ---
 
-## Features
-
-- **Robust Evaluation Framework**:
-  - Calculate upper and lower bounds for landmark detection accuracy.
-  - Score evaluation datasets with precise metrics.
-
-- **Colorization Module**:
-  - Enhance infrared images to mimic real-hand images for improved detection.
-
-- **Visualization Tools**:
-  - Clearly display landmarks on images for analysis and debugging.
-
-- **Custom Pipelines**:
-  - Flexible pipeline manager for seamless processing.
-
----
-
 ## Getting Started
 
 ### Installation
@@ -94,7 +77,7 @@ This research investigates how to improve landmark detection in infrared hand im
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/username/repository.git
+   git clone https://github.com/Zosiart/IR_Hand_Landmark_Recognition_Thesis_Project.git
    cd repository
    ```
 
@@ -106,11 +89,7 @@ This research investigates how to improve landmark detection in infrared hand im
 
 ### Usage
 
-Run the main script to perform evaluations and generate results:
-
-```bash
-python main.py
-```
+Run the main script to perform evaluations and generate results
 
 ---
 
@@ -125,7 +104,8 @@ This project evaluates landmark detection using:
    - Accuracy of MediaPipe predictions on unprocessed infrared images.
 
 3. **PCK (Percentage of Correct Keypoints)**:
-   - Thresholds: 0.025, 0.05, 0.07 (relative to image dimensions).
+   - Thresholds: 0.01 - 0.15.
+   - Acceptable distance computed as: `threshold * length of the hand`.
 
 ---
 
@@ -138,6 +118,13 @@ Pipelines in this project allow for:
 - Comprehensive evaluation with metrics.
 
 The `PipelineManager` class ensures flexibility and modularity for experimentation.
+
+---
+
+## Affiliations
+
+This repository is part of the **Research Project 2025** at **TU Delft**.
+
 
 ---
 

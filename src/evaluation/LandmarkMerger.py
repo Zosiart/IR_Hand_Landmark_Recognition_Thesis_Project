@@ -19,15 +19,32 @@ class LandmarkMerger:
         self.final_landmarks = None
 
     @staticmethod
-    def is_right_hand(landmarks):
+    def is_right_hand_one(landmarks):
         """
         Determines if the hand landmarks belong to the right hand.
 
         :param landmarks: List of landmarks for a hand.
         :return: True if the hand is likely the right hand, False otherwise.
         """
-        counter = sum(1 for landmark in landmarks if landmark.x > 0.5)
-        return counter > 10
+        thumb = landmarks[4]
+        pinky = landmarks[20]
+        return thumb.x > pinky.x
+
+    @staticmethod
+    def is_right_hand(landmarks_1, landmarks_2):
+        """
+        Determines if the landmarks_1 belong to the right hand
+        based on their relative positions to landmarks_2.
+
+        :param landmarks_1: List of landmarks for the first hand.
+        :param landmarks_2: List of landmarks for the second hand.
+        :return: True if landmarks_1 is the right hand, False otherwise.
+        """
+        landmarks_1_x = [landmark.x for landmark in landmarks_1]
+        landmarks_2_x = [landmark.x for landmark in landmarks_2]
+
+        # Compare average x-coordinates to decide relative handedness
+        return np.mean(landmarks_1_x) > np.mean(landmarks_2_x)
 
     def create_landmarks_from_results(self, results):
         """
@@ -40,15 +57,30 @@ class LandmarkMerger:
         gestures = results.gestures
         final_landmarks = {}
 
-        for i, hand_landmarks in enumerate(landmarks):
-            hand_gestures = gestures[i]
-            handedness = 'Right' if self.is_right_hand(hand_landmarks) else 'Left'
+        if len(landmarks) == 2:  # If both hands are detected
+            # Decide which hand is left or right based on their relative positions
+            if self.is_right_hand(landmarks[0], landmarks[1]):
+                handedness = ['Right', 'Left']
+            else:
+                handedness = ['Left', 'Right']
 
-            final_landmarks[handedness] = {
-                "landmarks": hand_landmarks,
-                "gestures": hand_gestures[0].category_name,
-                "score": hand_gestures[0].score
-            }
+            for i, hand_landmarks in enumerate(landmarks):
+                hand_gestures = gestures[i]
+
+                final_landmarks[handedness[i]] = {
+                    "landmarks": hand_landmarks,
+                    "gestures": hand_gestures[0].category_name,
+                    "score": hand_gestures[0].score
+                }
+        else:  # Single hand detected
+            for i, hand_landmarks in enumerate(landmarks):
+                hand_gestures = gestures[i]
+                handedness = 'Right' if self.is_right_hand_one(hand_landmarks) else 'Left'
+                final_landmarks[handedness] = {
+                    "landmarks": hand_landmarks,
+                    "gestures": hand_gestures[0].category_name,
+                    "score": hand_gestures[0].score
+                }
 
         return final_landmarks
 
